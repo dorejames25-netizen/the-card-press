@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seumas Game Engine - Explorer 2 Intake</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#070510',
+                        obsidian: '#0f0c1b',
+                        amethyst: {
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            900: '#581c87',
+                        },
+                        astral: {
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                        },
+                        occult: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Courier New', 'monospace']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 3s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 15px rgba(168, 85, 247, 0.3)' },
+                            '100%': { boxShadow: '0 0 30px rgba(34, 211, 238, 0.6)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070510;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #581c87;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9333ea;
+        }
+        .arcane-grid {
+            background-image: radial-gradient(rgba(168, 85, 247, 0.15) 1px, transparent 1px), radial-gradient(rgba(34, 211, 238, 0.1) 1px, #070510 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+        .glass-panel {
+            background: rgba(15, 12, 27, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        .glass-panel-active {
+            background: rgba(25, 18, 45, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(34, 211, 238, 0.4);
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-midnight text-slate-100 font-sans min-h-screen flex flex-col overflow-hidden arcane-grid">
+
+    <header class="h-16 border-b border-purple-900/40 bg-midnight/90 backdrop-blur-md px-6 flex items-center justify-between z-30 flex-shrink-0">
+        <div class="flex items-center space-x-4">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-900 via-amethyst-600 to-occult-500 flex items-center justify-center shadow-lg shadow-purple-900/50 animate-glow">
+                <i class="fa-solid fa-crystal-ball text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wider bg-gradient-to-r from-purple-300 via-amethyst-400 to-occult-400 bg-clip-text text-transparent">SEUMAS ENGINE</h1>
+                <p class="text-xs text-purple-400/80 font-mono tracking-widest">v1.0.4 // ARCANE-RETROWAVE</p>
+            </div>
+        </div>
+
+        <!-- Suite Page Tabs (explorer-2-intake.html, explorer.html, command-centre.html, preview.html) -->
+        <nav class="hidden md:flex items-center space-x-1 bg-obsidian/80 p-1.5 rounded-xl border border-purple-900/30">
+            <button onclick="switchTab('explorer-2-intake')" id="btn-explorer-2-intake" class="px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wider transition-all duration-300 flex items-center space-x-2 bg-amethyst-600 text-white shadow-md shadow-amethyst-900/50">
+                <i class="fa-solid fa-feather-pointed"></i>
+                <span>INTAKE (Explorer 2)</span>
+            </button>
+            <button onclick="switchTab('explorer')" id="btn-explorer" class="px-4 py-1.5 rounded-lg text-xs font-medium text-purple-300/70 hover:text-white hover:bg-purple-900/30 transition-all duration-300 flex items-center space-x-2">
+                <i class="fa-solid fa-compass"></i>
+                <span>Explorer Tree</span>
+            </button>
+            <button onclick="switchTab('command-centre')" id="btn-command-centre" class="px-4 py-1.5 rounded-lg text-xs font-medium text-purple-300/70 hover:text-white hover:bg-purple-900/30 transition-all duration-300 flex items-center space-x-2">
+                <i class="fa-solid fa-terminal"></i>
+                <span>Command Centre</span>
+            </button>
+            <button onclick="switchTab('preview')" id="btn-preview" class="px-4 py-1.5 rounded-lg text-xs font-medium text-purple-300/70 hover:text-white hover:bg-purple-900/30 transition-all duration-300 flex items-center space-x-2">
+                <i class="fa-solid fa-eye"></i>
+                <span>Visual Preview</span>
+            </button>
+        </nav>
+
+        <!-- Mood & Theme Switcher Widget -->
+        <div class="flex items-center space-x-3">
+            <div class="hidden lg:flex items-center space-x-2 bg-obsidian/90 px-3 py-1.5 rounded-lg border border-purple-900/30">
+                <span class="text-xs text-purple-400 font-mono"><i class="fa-solid fa-palette mr-1.5"></i>MOOD:</span>
+                <button onclick="setThemeMood('amethyst')" class="w-4 h-4 rounded-full bg-purple-600 hover:scale-125 transition-transform" title="Amethyst Dusk"></button>
+                <button onclick="setThemeMood('astral')" class="w-4 h-4 rounded-full bg-yellow-500 hover:scale-125 transition-transform" title="Astral Gold"></button>
+                <button onclick="setThemeMood('occult')" class="w-4 h-4 rounded-full bg-cyan-400 hover:scale-125 transition-transform" title="Occult Cyan"></button>
+                <button onclick="setThemeMood('midnight')" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-600 hover:scale-125 transition-transform" title="Deep Obsidian"></button>
+            </div>
+            <div class="h-6 w-px bg-purple-900/50"></div>
+            <button onclick="triggerMagicalCompile()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amethyst-600 to-occult-500 text-white font-semibold text-xs tracking-wider shadow-lg shadow-purple-900/40 hover:shadow-occult-500/40 hover:scale-105 transition-all duration-300 flex items-center space-x-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-astral-300 animate-pulse"></i>
+                <span>COMPILE RITUAL</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- TAB 1: EXPLORER 2 INTAKE (Default View) -->
+        <div id="tab-content-explorer-2-intake" class="flex-1 flex overflow-hidden w-full">
+            
+            <!-- Left Sidebar Navigation Tree -->
+            <aside class="w-72 bg-obsidian/60 border-r border-purple-900/30 flex flex-col flex-shrink-0 select-none">
+                <div class="p-4 border-b border-purple-900/30 flex items-center justify-between">
+                    <span class="text-xs font-mono uppercase tracking-widest text-purple-400 flex items-center">
+                        <i class="fa-solid fa-folder-tree mr-2 text-occult-400"></i>Mystical Directory
+                    </span>
+                    <button class="text-xs text-purple-400 hover:text-white" title="New Dossier"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-3 space-y-1 text-sm">
+                    <!-- Tree Root: Tabletop Engines -->
+                    <div class="text-xs font-mono text-purple-500 uppercase px-2 py-1">Active Projects</div>
+                    
+                    <div class="group">
+                        <div class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-amethyst-900/30 border border-amethyst-500/30 text-purple-200 cursor-pointer">
+                            <div class="flex items-center space-x-2 truncate">
+                                <i class="fa-solid fa-folder-open text-astral-400 text-xs"></i>
+                                <span class="font-medium text-xs">explorer-2-intake.html</span>
+                            </div>
+                            <span class="text-[10px] bg-amethyst-600/50 text-purple-200 px-1.5 py-0.5 rounded font-mono">active</span>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <div onclick="switchTab('explorer')" class="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-purple-900/20 text-purple-300/80 hover:text-white cursor-pointer transition-colors">
+                            <div class="flex items-center space-x-2 truncate">
+                                <i class="fa-solid fa-compass text-occult-400 text-xs"></i>
+                                <span class="text-xs">explorer.html</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-purple-500"></i>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <div onclick="switchTab('command-centre')" class="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-purple-900/20 text-purple-300/80 hover:text-white cursor-pointer transition-colors">
+                            <div class="flex items-center space-x-2 truncate">
+                                <i class="fa-solid fa-terminal text-astral-400 text-xs"></i>
+                                <span class="text-xs">command-centre.html</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-purple-500"></i>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <div onclick="switchTab('preview')" class="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-purple-900/20 text-purple-300/80 hover:text-white cursor-pointer transition-colors">
+                            <div class="flex items-center space-x-2 truncate">
+                                <i class="fa-solid fa-eye text-amethyst-400 text-xs"></i>
+                                <span class="text-xs">preview.html</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-purple-500"></i>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 text-xs font-mono text-purple-500 uppercase px-2 py-1">Investigative Modules</div>
+                    
+                    <div class="pl-3 space-y-1 border-l border-purple-900/40 ml-2">
+                        <a href="#zodiac" onclick="selectModule('zodiac')" class="block px-2 py-1 rounded text-xs text-purple-300/70 hover:text-white hover:bg-purple-900/20 transition-colors">
+                            <i class="fa-solid fa-star-of-david mr-2 text-astral-400"></i>Zodiac Alignment Engine
+                        </a>
+                        <a href="#detective" onclick="selectModule('detective')" class="block px-2 py-1 rounded text-xs text-purple-300/70 hover:text-white hover:bg-purple-900/20 transition-colors">
+                            <i class="fa-solid fa-magnifying-glass mr-2 text-occult-400"></i>Detective Dossiers
+                        </a>
+                        <a href="#spies" onclick="selectModule('spies')" class="block px-2 py-1 rounded text-xs text-purple-300/70 hover:text-white hover:bg-purple-900/20 transition-colors">
+                            <i class="fa-solid fa-user-secret mr-2 text-amethyst-400"></i>Spy Cipher Networks
+                        </a>
+                        <a href="#crystal" onclick="selectModule('crystal')" class="block px-2 py-1 rounded text-xs text-purple-300/70 hover:text-white hover:bg-purple-900/20 transition-colors">
+                            <i class="fa-solid fa-crystal-ball mr-2 text-purple-400"></i>Crystal Divination Events
+                        </a>
+                        <a href="#tea" onclick="selectModule('tea')" class="block px-2 py-1 rounded text-xs text-purple-300/70 hover:text-white hover:bg-purple-900/20 transition-colors">
+                            <i class="fa-solid fa-mug-hot mr-2 text-amber-500"></i>Tea-Leaf Cryptograms
+                        </a>
+                    </div>
+                </div>
+
+                <div class="p-3 border-t border-purple-900/30 bg-obsidian/90 text-xs flex items-center justify-between text-purple-400">
+                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span>Arcane Link Active</span>
+                    <span class="font-mono text-[10px]">SECURE-99</span>
+                </div>
+            </aside>
+
+            <!-- Central Configuration & Intake Form -->
+            <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-midnight/80">
+                <div class="max-w-4xl mx-auto space-y-8">
+                    
+                    <!-- Page Banner -->
+                    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -left-10 -top-10 w-48 h-48 bg-occult-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+                            <div>
+                                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amethyst-900/50 border border-amethyst-500/30 text-purple-300 text-xs font-mono mb-2">
+                                    <i class="fa-solid fa-scroll text-astral-400"></i>
+                                    <span>GAME MASTER INTAKE PORTAL</span>
+                                </div>
+                                <h2 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-200 to-occult-300 bg-clip-text text-transparent">
+                                    Compile Tabletop Arcana & Investigations
+                                </h2>
+                                <p class="text-sm text-purple-300/70 mt-1 max-w-xl">
+                                    Configure parameters for mystical tabletop simulations, weave Zodiac harmonies into detective clues, and instantiate crystal ball divinations.
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button onclick="resetIntakeForm()" class="px-4 py-2 rounded-xl bg-obsidian border border-purple-900/50 hover:bg-purple-950 text-xs text-purple-300 transition-colors">
+                                    <i class="fa-solid fa-rotate-right mr-1.5"></i>Reset Form
+                                </button>
+                                <button onclick="simulateAIPrompt()" class="px-4 py-2 rounded-xl bg-purple-900/60 border border-purple-500/40 hover:bg-purple-800 text-xs text-white font-medium transition-all shadow-md shadow-purple-950">
+                                    <i class="fa-solid fa-wand-magic mr-1.5 text-astral-300"></i>AI Oracle Assist
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Intake Form Grid -->
+                    <form id="arcaneIntakeForm" onsubmit="event.preventDefault(); triggerMagicalCompile();" class="space-y-6">
+                        
+                        <!-- Section 1: Campaign Metadata -->
+                        <div class="glass-panel p-6 rounded-2xl space-y-4">
+                            <h3 class="text-sm font-semibold text-purple-200 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-book-skull mr-2 text-amethyst-400"></i>1. Campaign Identity & Investigator Dossier
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-purple-300/80 mb-1.5">Campaign Title</label>
+                                    <input type="text" id="campaignName" value="The Zodiac Murders of Obsidian Keep" class="w-full bg-obsidian/90 border border-purple-900/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-occult-400 transition-colors" placeholder="e.g. Shadows of the Astral Clock">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-purple-300/80 mb-1.5">Lead Detective / Occultist</label>
+                                    <input type="text" id="leadInvestigator" value="Inspector Thaddeus Vane" class="w-full bg-obsidian/90 border border-purple-900/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-occult-400 transition-colors" placeholder="e.g. Detective Blackwood">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-purple-300/80 mb-1.5">Primary Theme</label>
+                                    <select id="primaryTheme" class="w-full bg-obsidian/90 border border-purple-900/60 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-occult-400 transition-colors">
+                                        <option value="zodiac">Zodiac & Astrological Alignments</option>
+                                        <option value="detective">Victorian Detective Noir</option>
+                                        <option value="spy">Espionage & Cold War Ciphers</option>
+                                        <option value="crystal" selected>Crystal Ball Divination</option>
+                                        <option value="tea">Tea-Leaf Cryptograms</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-purple-300/80 mb-1.5">Arcane Resonance Level</label>
+                                    <select id="resonanceLevel" class="w-full bg-obsidian/90 border border-purple-900/60 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-occult-400 transition-colors">
+                                        <option value="1">Tier I: Subtle Whispers (Low)</option>
+                                        <option value="2">Tier II: Veiled Omens (Medium)</option>
+                                        <option value="3" selected>Tier III: Astral Tempest (High)</option>
+                                        <option value="4">Tier IV: Total Eclipse (Maximum)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-purple-300/80 mb-1.5">Difficulty Modifier</label>
+                                    <select id="difficultyMod" class="w-full bg-obsidian/90 border border-purple-900/60 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-occult-400 transition-colors">
+                                        <option value="novice">Novice Scryer</option>
+                                        <option value="adept" selected>Adept Investigator</option>
+                                        <option value="master">Grandmaster Inquisitor</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Mystical Elements & Mechanics Selector -->
+                        <div class="glass-panel p-6 rounded-2xl space-y-4">
+                            <h3 class="text-sm font-semibold text-purple-200 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-hat-wizard mr-2 text-occult-400"></i>2. Mystical & Investigative Feature Toggles
+                            </h3>
+                            <p class="text-xs text-purple-300/70">Select the modular engines active in your session runtime:</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+                                <label class="flex items-center space-x-3 p-3 rounded-xl bg-obsidian/70 border border-purple-900/40 hover:border-amethyst-500 cursor-pointer transition-all">
+                                    <input type="checkbox" checked class="w-4 h-4 rounded bg-midnight border-purple-700 text-amethyst-600 focus:ring-amethyst-500">
+                                    <div>
+                                        <span class="text-xs font-semibold block text-white">Crystal Ball Scrying</span>
+                                        <span class="text-[10px] text-purple-400/80">Real-time foresight events</span>
+                                    </div>
+                                </label>
+                                
+                                <label class="flex items-center space-x-3 p-3 rounded-xl bg-obsidian/70 border border-purple-900/40 hover:border-amethyst-500 cursor-pointer transition-all">
+                                    <input type="checkbox" checked class="w-4 h-4 rounded bg-midnight border-purple-700 text-amethyst-600 focus:ring-amethyst-500">
+                                    <div>
+                                        <span class="text-xs font-semibold block text-white">Zodiac Alignment Matrix</span>
+                                        <span class="text-[10px] text-purple-400/80">Horoscopic stat bonuses</span>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-center space-x-3 p-3 rounded-xl bg-obsidian/70 border border-purple-900/40 hover:border-amethyst-500 cursor-pointer transition-all">
+                                    <input type="checkbox" checked class="w-4 h-4 rounded bg-midnight border-purple-700 text-amethyst-600 focus:ring-amethyst-500">
+                                    <div>
+                                        <span class="text-xs font-semibold block text-white">Detective Dossier System</span>
+                                        <span class="text-[10px] text-purple-400/80">Clue connection boards</span>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-center space-x-3 p-3 rounded-xl bg-obsidian/70 border border-purple-900/40 hover:border-amethyst-500 cursor-pointer transition-all">
+                                    <input type="checkbox" checked class="w-4 h-4 rounded bg-midnight border-purple-700 text-amethyst-600 focus:ring-amethyst-500">
+                                    <div>
+                                        <span class="text-xs font-semibold block text-white">Spy Cipher Network</span>
+                                        <span class="text-[10px] text-purple-400/80">Intercepted telegram decoders</span>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-center space-x-3 p-3 rounded-xl bg-obsidian/70 border border-purple-900/40 hover:border-amethyst-500 cursor-pointer transition-all">
+                                    <input type="checkbox" class="w-4 h-4 rounded bg-midnight border-purple-700 text-amethyst-600 focus:ring-amethyst-500">
+                                    <div>
+                                        <span class="text-xs font-semibold block text-white">Tea-Leaf Cryptograms</span>
+                                        <span class="text-[10px] text-purple-400/80">Randomized sediment puzzles</span>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-center space-x-3 p-3 rounded-xl bg-obsidian/70 border border-purple-900/40 hover:border-amethyst-500 cursor-pointer transition-all">
+                                    <input type="checkbox" checked class="w-4 h-4 rounded bg-midnight border-purple-700 text-amethyst-600 focus:ring-amethyst-500">
+                                    <div>
+                                        <span class="text-xs font-semibold block text-white">Astral Audio Ambiance</span>
+                                        <span class="text-[10px] text-purple-400/80">Synthesized tone-grid drone</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Custom Lore & Prompt Injection -->
+                        <div class="glass-panel p-6 rounded-2xl space-y-4">
+                            <h3 class="text-sm font-semibold text-purple-200 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-feather mr-2 text-astral-400"></i>3. Lore & Procedural Seed Generation
+                            </h3>
+                            <div>
+                                <label class="block text-xs font-medium text-purple-300/80 mb-1.5">Session Initializer Lore / Narrative Hook</label>
+                                <textarea rows="3" class="w-full bg-obsidian/90 border border-purple-900/60 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-occult-400 transition-colors font-mono text-xs">The clock strikes thirteen in Victorian London. A peculiar green vapor rises from the grand crystal ball in Parlor B, revealing the alignment of Scorpio and Neptune. Inspector Vane discovers a cipher note left behind by the vanished ambassador.</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Action Bar -->
+                        <div class="flex items-center justify-end space-x-4 pt-2">
+                            <button type="button" onclick="exportDossierJson()" class="px-5 py-2.5 rounded-xl bg-obsidian border border-purple-900 text-xs font-medium text-purple-300 hover:text-white hover:border-purple-600 transition-all flex items-center space-x-2">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Export JSON Config</span>
+                            </button>
+                            <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amethyst-600 via-purple-600 to-occult-500 text-xs font-bold text-white tracking-wider shadow-lg shadow-purple-900/60 hover:scale-105 transition-all flex items-center space-x-2">
+                                <i class="fa-solid fa-bolt text-astral-300"></i>
+                                <span>INITIALIZE ENGINE RUNTIME</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+
+            <!-- Right Live Preview Results Panel -->
+            <aside class="w-80 lg:w-96 bg-obsidian/70 border-l border-purple-900/30 flex flex-col flex-shrink-0">
+                <div class="p-4 border-b border-purple-900/30 flex items-center justify-between">
+                    <span class="text-xs font-mono uppercase tracking-widest text-occult-400 flex items-center">
+                        <i class="fa-solid fa-satellite-dish mr-2 animate-pulse"></i>Live Runtime Preview
+                    </span>
+                    <span class="text-[10px] bg-cyan-950 text-occult-400 border border-occult-500/30 px-2 py-0.5 rounded font-mono">STATUS: SYNCED</span>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- Preview Card: Crystal Ball Visualizer -->
+                    <div class="glass-panel p-4 rounded-2xl relative overflow-hidden text-center group">
+                        <div class="absolute inset-0 bg-gradient-to-b from-purple-950/40 to-transparent pointer-events-none"></div>
+                        <div class="w-24 h-24 mx-auto my-3 rounded-full bg-gradient-to-tr from-purple-900 via-amethyst-500 to-occult-400 flex items-center justify-center shadow-xl shadow-purple-900/50 relative animate-float">
+                            <div class="absolute inset-2 rounded-full border border-white/30 animate-spin" style="animation-duration: 15s;"></div>
+                            <i class="fa-solid fa-eye text-3xl text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"></i>
+                        </div>
+                        <h4 class="text-xs font-semibold text-purple-200 mt-2">Crystal Ball #09 (Active)</h4>
+                        <p class="text-[11px] text-purple-300/70 mt-1">Resonance Frequency: <span class="text-occult-400 font-mono">432 Hz</span></p>
+                        <div class="mt-3 pt-3 border-t border-purple-900/40 flex justify-between text-[11px] text-purple-400 font-mono">
+                            <span>ZODIAC: SCORPIO</span>
+                            <span class="text-astral-400">PROB: 98.4%</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Detective Clue Board Widget -->
+                    <div class="glass-panel p-4 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between text-xs font-semibold text-purple-200">
+                            <span><i class="fa-solid fa-magnifying-glass mr-1.5 text-amethyst-400"></i>Active Clue Thread</span>
+                            <span class="text-[10px] text-occult-400 font-mono">3 Connected</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="p-2.5 rounded-xl bg-midnight/80 border border-purple-900/40 flex items-center justify-between">
+                                <span class="text-purple-300 truncate">The Poisoned Tea-Leaf</span>
+                                <span class="text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded font-mono">CRITICAL</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-midnight/80 border border-purple-900/40 flex items-center justify-between">
+                                <span class="text-purple-300 truncate">Telegram from Berlin (Encrypted)</span>
+                                <span class="text-[10px] bg-cyan-950 text-occult-400 px-1.5 py-0.5 rounded font-mono">CIPHER</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-midnight/80 border border-purple-900/40 flex items-center justify-between">
+                                <span class="text-purple-300 truncate">Zodiac Chart: 13th House</span>
+                                <span class="text-[10px] bg-amber-950 text-astral-400 px-1.5 py-0.5 rounded font-mono">ASTRAL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Telemetry Log -->
+                    <div class="glass-panel p-4 rounded-2xl space-y-2 font-mono text-[11px]">
+                        <div class="flex items-center justify-between text-purple-400 border-b border-purple-900/40 pb-1.5">
+                            <span><i class="fa-solid fa-terminal mr-1.5"></i>Runtime Telemetry</span>
+                            <span class="text-emerald-400">OK</span>
+                        </div>
+                        <div class="text-purple-300/70 space-y-1 pt-1">
+                            <p>> Loading crystal refraction matrix...</p>
+                            <p>> Synchronizing detective dossiers...</p>
+                            <p class="text-occult-400">> Zodiac alignment locked at 180°.</p>
+                            <p class="text-astral-400">> Ready for session master input.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-purple-900/30 bg-obsidian/90">
+                    <button onclick="triggerMagicalCompile()" class="w-full py-2.5 rounded-xl bg-amethyst-600 hover:bg-amethyst-500 text-white font-semibold text-xs tracking-wider shadow-md shadow-amethyst-900 transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Launch Simulation Session</span>
+                    </button>
+                </div>
+            </aside>
+        </div>
+
+        <!-- TAB 2: EXPLORER TREE (explorer.html view) -->
+        <div id="tab-content-explorer" class="hidden flex-1 flex flex-col overflow-hidden bg-midnight/90 p-8">
+            <div class="max-w-5xl mx-auto w-full space-y-6">
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-occult-950 border border-occult-500/30 text-occult-400 text-xs font-mono mb-2">
+                            <i class="fa-solid fa-compass"></i>
+                            <span>EXPLORER REPO SYSTEM</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Project File Repository & Asset Tree</h2>
+                        <p class="text-sm text-purple-300/70 mt-1">Inspect all 4 integrated files comprising the Seumas Game Engine v1 suite.</p>
+                    </div>
+                    <button onclick="switchTab('explorer-2-intake')" class="px-4 py-2 rounded-xl bg-amethyst-600 text-white text-xs font-medium hover:bg-amethyst-500 transition-colors">
+                        Return to Intake
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 border-l-4 border-l-amethyst-500">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono text-amethyst-400">CORE INTAKE FILE</span>
+                            <span class="text-xs font-mono bg-amethyst-950 text-purple-300 px-2 py-0.5 rounded">HTML5 / Single-File</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">explorer-2-intake.html</h3>
+                        <p class="text-xs text-purple-300/70">The master intake form with mystical themes, sidebar navigation, and live preview runtime panel.</p>
+                        <div class="pt-2">
+                            <button onclick="switchTab('explorer-2-intake')" class="text-xs text-occult-400 hover:underline flex items-center"><i class="fa-solid fa-arrow-right mr-1.5"></i>Open in Editor</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 border-l-4 border-l-occult-400">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono text-occult-400">NAVIGATION REPO</span>
+                            <span class="text-xs font-mono bg-cyan-950 text-occult-400 px-2 py-0.5 rounded">HTML5 / Tab 2</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">explorer.html</h3>
+                        <p class="text-xs text-purple-300/70">The deep-dive file explorer showing all modular scripts, JSON registries, and zodiac lookup charts.</p>
+                        <div class="pt-2">
+                            <button onclick="switchTab('explorer')" class="text-xs text-occult-400 hover:underline flex items-center"><i class="fa-solid fa-arrow-right mr-1.5"></i>Inspect Tree</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 border-l-4 border-l-astral-400">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono text-astral-400">GAME MASTER CONTROL</span>
+                            <span class="text-xs font-mono bg-amber-950 text-astral-400 px-2 py-0.5 rounded">HTML5 / Tab 3</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">command-centre.html</h3>
+                        <p class="text-xs text-purple-300/70">Live GM command centre featuring dice rollers, tea-leaf cryptogram solvers, and secret telegram dispatchers.</p>
+                        <div class="pt-2">
+                            <button onclick="switchTab('command-centre')" class="text-xs text-occult-400 hover:underline flex items-center"><i class="fa-solid fa-arrow-right mr-1.5"></i>Open Command Centre</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 border-l-4 border-l-purple-400">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono text-purple-400">VISUAL RENDERER</span>
+                            <span class="text-xs font-mono bg-purple-950 text-purple-300 px-2 py-0.5 rounded">HTML5 / Tab 4</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">preview.html</h3>
+                        <p class="text-xs text-purple-300/70">Immersive canvas preview system showcasing the arcane-meets-retrowave aesthetic and mood switcher.</p>
+                        <div class="pt-2">
+                            <button onclick="switchTab('preview')" class="text-xs text-occult-400 hover:underline flex items-center"><i class="fa-solid fa-arrow-right mr-1.5"></i>View Preview System</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: COMMAND CENTRE (command-centre.html view) -->
+        <div id="tab-content-command-centre" class="hidden flex-1 flex flex-col overflow-hidden bg-midnight/90 p-8">
+            <div class="max-w-5xl mx-auto w-full space-y-6 overflow-y-auto">
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950 border border-purple-500/30 text-purple-300 text-xs font-mono mb-2">
+                            <i class="fa-solid fa-terminal"></i>
+                            <span>GAME MASTER COMMAND CENTRE</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Active Session Control Hub</h2>
+                        <p class="text-sm text-purple-300/70 mt-1">Roll mystical dice, decrypt telegrams, and broadcast scrying omens to investigators.</p>
+                    </div>
+                    <button onclick="switchTab('explorer-2-intake')" class="px-4 py-2 rounded-xl bg-amethyst-600 text-white text-xs font-medium hover:bg-amethyst-500 transition-colors">
+                        Return to Intake
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Dice Roller -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4">
+                        <h3 class="text-sm font-bold text-white flex items-center"><i class="fa-solid fa-dice mr-2 text-astral-400"></i>Arcane Dice Roller</h3>
+                        <p class="text-xs text-purple-300/70">Roll polyhedral dice imbued with Zodiac energy.</p>
+                        <div class="p-4 rounded-xl bg-obsidian text-center font-mono text-2xl font-bold text-astral-400 border border-purple-900/60" id="diceResult">
+                            d20: [ 17 ]
+                        </div>
+                        <button onclick="rollArcaneDice()" class="w-full py-2.5 rounded-xl bg-purple-900/60 hover:bg-purple-800 border border-purple-500/40 text-xs font-semibold text-white transition-all">
+                            Roll Astral d20
+                        </button>
+                    </div>
+
+                    <!-- Telegram Dispatcher -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 md:col-span-2">
+                        <h3 class="text-sm font-bold text-white flex items-center"><i class="fa-solid fa-paper-plane mr-2 text-occult-400"></i>Secret Spy Telegram Dispatch</h3>
+                        <p class="text-xs text-purple-300/70">Send encrypted dispatches across London intelligence networks.</p>
+                        <div class="space-y-3">
+                            <input type="text" id="telegramRecipient" value="Agent Rook - Station 9" class="w-full bg-obsidian border border-purple-900/60 rounded-xl px-3 py-2 text-xs text-white">
+                            <textarea id="telegramMsg" rows="2" class="w-full bg-obsidian border border-purple-900/60 rounded-xl p-3 text-xs text-white font-mono">The tea leaves in Parlor B point toward the Scorpio eclipse. Destroy all ciphers.</textarea>
+                            <button onclick="dispatchTelegram()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-occult-600 to-amethyst-600 text-xs font-semibold text-white hover:scale-105 transition-all">
+                                Broadcast Telegram
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: VISUAL PREVIEW SYSTEM (preview.html view) -->
+        <div id="tab-content-preview" class="hidden flex-1 flex flex-col overflow-hidden bg-midnight/90 p-8">
+            <div class="max-w-5xl mx-auto w-full space-y-6 overflow-y-auto">
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950 border border-occult-500/30 text-occult-400 text-xs font-mono mb-2">
+                            <i class="fa-solid fa-eye"></i>
+                            <span>ARCANE-RETROWAVE VISUAL SYSTEM</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Immersive Aesthetics Showcase</h2>
+                        <p class="text-sm text-purple-300/70 mt-1">Review color palettes, typography scaling, glowing cards, and mystical UI widgets.</p>
+                    </div>
+                    <button onclick="switchTab('explorer-2-intake')" class="px-4 py-2 rounded-xl bg-amethyst-600 text-white text-xs font-medium hover:bg-amethyst-500 transition-colors">
+                        Return to Intake
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl space-y-3 text-center">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-purple-900/50 border border-purple-500 flex items-center justify-center text-purple-300">
+                            <i class="fa-solid fa-crystal-ball text-xl"></i>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Amethyst Dusk</h4>
+                        <p class="text-xs text-purple-300/70">Deep midnight obsidian background with glowing purple whispers.</p>
+                        <button onclick="setThemeMood('amethyst')" class="mt-2 px-3 py-1.5 rounded-lg bg-purple-900/60 text-xs text-purple-200">Activate</button>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-3 text-center">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-yellow-950 border border-yellow-500 flex items-center justify-center text-astral-400">
+                            <i class="fa-solid fa-star-of-david text-xl"></i>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Astral Gold</h4>
+                        <p class="text-xs text-purple-300/70">Celestial gold accents highlighting zodiac charts and horoscopes.</p>
+                        <button onclick="setThemeMood('astral')" class="mt-2 px-3 py-1.5 rounded-lg bg-yellow-900/60 text-xs text-yellow-200">Activate</button>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-3 text-center">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-cyan-950 border border-occult-400 flex items-center justify-center text-occult-400">
+                            <i class="fa-solid fa-user-secret text-xl"></i>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Occult Cyan</h4>
+                        <p class="text-xs text-purple-300/70">Cyber-occult cyan luminescence for spy networks and cipher decoders.</p>
+                        <button onclick="setThemeMood('occult')" class="mt-2 px-3 py-1.5 rounded-lg bg-cyan-900/60 text-xs text-cyan-200">Activate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.getElementById('tab-content-explorer-2-intake').classList.add('hidden');
+            document.getElementById('tab-content-explorer').classList.add('hidden');
+            document.getElementById('tab-content-command-centre').classList.add('hidden');
+            document.getElementById('tab-content-preview').classList.add('hidden');
+
+            // Remove active states from nav buttons
+            document.getElementById('btn-explorer-2-intake').className = "px-4 py-1.5 rounded-lg text-xs font-medium text-purple-300/70 hover:text-white hover:bg-purple-900/30 transition-all duration-300 flex items-center space-x-2";
+            document.getElementById('btn-explorer').className = "px-4 py-1.5 rounded-lg text-xs font-medium text-purple-300/70 hover:text-white hover:bg-purple-900/30 transition-all duration-300 flex items-center space-x-2";
+            document.getElementById('btn-command-centre').className = "px-4 py-1.5 rounded-lg text-xs font-medium text-purple-300/70 hover:text-white hover:bg-purple-900/30 transition-all duration-300 flex items-center space-x-2";
+            document.getElementById('btn-preview').className = "px-4 py-1.5 rounded-lg text-xs font-medium text-purple-300/70 hover:text-white hover:bg-purple-900/30 transition-all duration-300 flex items-center space-x-2";
+
+            // Show selected tab
+            document.getElementById('tab-content-' + tabId).classList.remove('hidden');
+
+            // Activate button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wider transition-all duration-300 flex items-center space-x-2 bg-amethyst-600 text-white shadow-md shadow-amethyst-900/50";
+        }
+
+        function setThemeMood(mood) {
+            const body = document.body;
+            if (mood === 'amethyst') {
+                body.style.backgroundColor = '#070510';
+            } else if (mood === 'astral') {
+                body.style.backgroundColor = '#0c0a05';
+            } else if (mood === 'occult') {
+                body.style.backgroundColor = '#030a10';
+            } else {
+                body.style.backgroundColor = '#020205';
+            }
+            showToast('Mood palette shifted to: ' + mood.toUpperCase());
+        }
+
+        function triggerMagicalCompile() {
+            const title = document.getElementById('campaignName').value;
+            showToast('Compiling ritual for: "' + title + '"... Success!');
+        }
+
+        function resetIntakeForm() {
+            document.getElementById('arcaneIntakeForm').reset();
+            showToast('Intake form reset to default arcane parameters.');
+        }
+
+        function simulateAIPrompt() {
+            document.getElementById('campaignName').value = "The Zodiac Cipher of Astral Parlor B";
+            document.getElementById('leadInvestigator').value = "Oracle Vesper & Inspector Vane";
+            showToast('AI Oracle successfully synthesized narrative hooks.');
+        }
+
+        function exportDossierJson() {
+            const data = {
+                title: document.getElementById('campaignName').value,
+                investigator: document.getElementById('leadInvestigator').value,
+                theme: document.getElementById('primaryTheme').value,
+                resonance: document.getElementById('resonanceLevel').value,
+                timestamp: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'seumas-game-engine-dossier.json';
+            a.click();
+            showToast('Dossier exported as secure JSON.');
+        }
+
+        function rollArcaneDice() {
+            const roll = Math.floor(Math.random() * 20) + 1;
+            document.getElementById('diceResult').innerText = "d20: [ " + roll + " ]";
+            showToast('Rolled Astral d20: ' + roll);
+        }
+
+        function dispatchTelegram() {
+            const recipient = document.getElementById('telegramRecipient').value;
+            showToast('Encrypted telegram successfully dispatched to ' + recipient);
+        }
+
+        function selectModule(mod) {
+            switchTab('explorer-2-intake');
+            showToast('Focused module: ' + mod.toUpperCase());
+        }
+
+        function showToast(message) {
+            const existing = document.getElementById('arcane-toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'arcane-toast';
+            toast.className = 'fixed bottom-6 right-6 z-50 bg-obsidian border border-amethyst-500/50 text-purple-200 px-4 py-3 rounded-xl shadow-2xl shadow-purple-950 flex items-center space-x-3 text-xs font-mono animate-bounce';
+            toast.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-astral-400"></i><span>' + message + '</span>';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
