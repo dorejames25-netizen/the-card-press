@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en" data-mood="black">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Game Generator — Studio & Deck Builder</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@300;400;600;700;900&family=Space+Grotesk:wght@500;700;900&family=VT323&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       DYNAMIC MOOD ENGINE & DESIGN TOKENS
+       ========================================================================== */
+    :root {
+      --font-main: 'Inter', sans-serif;
+      --font-heading: 'Space Grotesk', sans-serif;
+      --bg-dark: #090a0f;
+      --panel-bg: rgba(18, 20, 29, 0.85);
+      --border-color: rgba(255, 255, 255, 0.12);
+      
+      /* Default Mood: BLACK (Filth / Underground) */
+      --primary: #f43f5e;
+      --primary-glow: rgba(244, 63, 94, 0.5);
+      --accent: #e11d48;
+      --card-bg: #121216;
+      --badge-bg: rgba(244, 63, 94, 0.2);
+      --button-hover-transform: translateY(-2px);
+      --card-border-radius: 14px;
+    }
+
+    /* PINK — CHAOS (Cheeky, Bouncy, Electric) */
+    [data-mood="pink"] {
+      --font-main: 'Inter', sans-serif;
+      --font-heading: 'Permanent Marker', cursive;
+      --bg-dark: #190516;
+      --panel-bg: rgba(40, 10, 35, 0.85);
+      --border-color: #ec4899;
+      --primary: #ec4899;
+      --primary-glow: rgba(236, 72, 153, 0.6);
+      --accent: #f472b6;
+      --card-bg: #2d0b28;
+      --badge-bg: rgba(236, 72, 153, 0.25);
+    }
+
+    /* GREEN — PARTY (Pub, Beer Hall, Tavern) */
+    [data-mood="green"] {
+      --font-main: 'Inter', sans-serif;
+      --font-heading: 'Space Grotesk', sans-serif;
+      --bg-dark: #04170d;
+      --panel-bg: rgba(10, 38, 24, 0.85);
+      --border-color: #10b981;
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.6);
+      --accent: #34d399;
+      --card-bg: #0b2e1c;
+      --badge-bg: rgba(16, 185, 129, 0.25);
+    }
+
+    /* PURPLE — MYSTERY (Ethereal Glow, Mystic) */
+    [data-mood="purple"] {
+      --font-main: 'Inter', sans-serif;
+      --font-heading: 'Cinzel', serif;
+      --bg-dark: #0d0722;
+      --panel-bg: rgba(26, 15, 52, 0.85);
+      --border-color: #8b5cf6;
+      --primary: #8b5cf6;
+      --primary-glow: rgba(139, 92, 246, 0.6);
+      --accent: #a78bfa;
+      --card-bg: #1c103e;
+      --badge-bg: rgba(139, 92, 246, 0.25);
+    }
+
+    /* BLACK — FILTH (Underground, Neon Club) */
+    [data-mood="black"] {
+      --font-main: 'Inter', sans-serif;
+      --font-heading: 'Space Grotesk', sans-serif;
+      --bg-dark: #050507;
+      --panel-bg: rgba(15, 15, 22, 0.9);
+      --border-color: #334155;
+      --primary: #f43f5e;
+      --primary-glow: rgba(244, 63, 94, 0.5);
+      --accent: #fb7185;
+      --card-bg: #0e0e13;
+      --badge-bg: rgba(244, 63, 94, 0.2);
+    }
+
+    /* CUSTOM — CYBER SYNTH (Retro Arcade) */
+    [data-mood="custom"] {
+      --font-main: 'Inter', sans-serif;
+      --font-heading: 'VT323', monospace;
+      --bg-dark: #06101e;
+      --panel-bg: rgba(10, 26, 50, 0.85);
+      --border-color: #06b6d4;
+      --primary: #06b6d4;
+      --primary-glow: rgba(6, 182, 212, 0.6);
+      --accent: #38bdf8;
+      --card-bg: #0d213f;
+      --badge-bg: rgba(6, 182, 212, 0.25);
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #f8fafc;
+      font-family: var(--font-main);
+      transition: background-color 0.4s ease, color 0.4s ease;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: var(--font-heading);
+    }
+
+    .glass-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* TACTILE ANIMATIONS ACCORDING TO MOOD */
+    .btn-tactile {
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Pink Bouncy Physics */
+    [data-mood="pink"] .btn-tactile:hover {
+      transform: scale(1.05) rotate(-1.5deg);
+      box-shadow: 0 0 22px var(--primary-glow);
+    }
+
+    /* Green Wobble Physics */
+    [data-mood="green"] .btn-tactile:hover {
+      animation: pubWobble 0.4s ease infinite alternate;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    /* Purple Floating Glow Physics */
+    [data-mood="purple"] .btn-tactile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 30px var(--primary-glow), inset 0 0 12px var(--primary);
+    }
+
+    /* Black Neon Flicker Physics */
+    [data-mood="black"] .btn-tactile:hover {
+      animation: neonFlicker 1.4s infinite;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    /* Custom Synth Pulse */
+    [data-mood="custom"] .btn-tactile:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 25px var(--primary-glow);
+      letter-spacing: 0.05em;
+    }
+
+    @keyframes pubWobble {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-4px) rotate(2deg); }
+    }
+
+    @keyframes neonFlicker {
+      0%, 100% { opacity: 1; }
+      48% { opacity: 0.85; }
+      50% { opacity: 1; }
+      52% { opacity: 0.6; }
+      54% { opacity: 1; }
+    }
+
+    @keyframes cardShuffle {
+      0% { transform: translateY(0) rotate(0deg) scale(1); }
+      50% { transform: translateY(-25px) rotate(6deg) scale(0.92); }
+      100% { transform: translateY(0) rotate(0deg) scale(1); }
+    }
+
+    .animate-shuffle {
+      animation: cardShuffle 0.35s ease-in-out;
+    }
+
+    /* ==========================================================================
+       CARD TEMPLATE RENDERER STYLES (Decoupled Visual Themes)
+       ========================================================================== */
+    .card-render {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Template A: Standard Playing Card */
+    .template-standard {
+      background: var(--card-bg);
+      border: 2px solid var(--primary);
+      border-radius: var(--card-border-radius);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Template B: Modern Trading Deck */
+    .template-modern {
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid #38bdf8;
+      border-radius: 16px;
+      box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.25), 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    /* Template C: British Pub Style */
+    .template-pub {
+      background: #231815;
+      border: 4px double #d97706;
+      border-radius: 8px;
+      color: #fef3c7;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 6px 16px rgba(0,0,0,0.5);
+    }
+
+    /* Template D: Neon Nightclub */
+    .template-neon {
+      background: #09090b;
+      border: 2px solid #f43f5e;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #f43f5e, inset 0 0 12px rgba(244, 63, 94, 0.3);
+    }
+
+    /* Template E: Minimal Black & White */
+    .template-minimal {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border: 3px solid #000000 !important;
+      border-radius: 6px;
+      box-shadow: 5px 5px 0px #000000;
+    }
+    .template-minimal * {
+      color: #000000 !important;
+      border-color: #000000 !important;
+    }
+
+    /* ==========================================================================
+       PRINT SPECIFICATIONS (Vistaprint 3.5" x 2.0" Business Card Sheet Layout)
+       ========================================================================== */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-sheet {
+        display: grid !important;
+        grid-template-columns: repeat(3, 3.5in) !important;
+        grid-auto-rows: 2in !important;
+        gap: 0.2in !important;
+        padding: 0.25in !important;
+      }
+      .card-render {
+        width: 3.5in !important;
+        height: 2.0in !important;
+        box-shadow: none !important;
+        border: 1px dashed #ccc !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        color: black !important;
+        background: white !important;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between">
+
+  <!-- HEADER & GLOBAL NAVIGATION BAR -->
+  <header class="glass-panel sticky top-0 z-50 border-b px-4 py-3 no-print">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('dashboard')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-500 via-purple-600 to-indigo-600 flex items-center justify-center font-black text-xl shadow-lg">
+          🎴
+        </div>
+        <div>
+          <h1 class="text-xl font-black tracking-wider leading-none">DECK BUILDER STUDIO</h1>
+          <span class="text-[10px] text-gray-400 font-mono tracking-widest">CARD GAME GENERATOR v4.0</span>
+        </div>
+      </div>
+
+      <!-- Main Navigation -->
+      <nav class="flex items-center gap-1 md:gap-2">
+        <button onclick="switchPage('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-2 bg-rose-600/20 text-rose-300 border border-rose-500/40">
+          <i class="fa-solid fa-gauge-high"></i> <span class="hidden sm:inline">1. DASHBOARD</span>
+        </button>
+        <button onclick="switchPage('intake')" id="nav-intake" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold text-gray-300 hover:bg-white/10 transition flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square"></i> <span class="hidden sm:inline">2. INTAKE FORM</span>
+        </button>
+        <button onclick="switchPage('compiler')" id="nav-compiler" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold text-gray-300 hover:bg-white/10 transition flex items-center gap-2">
+          <i class="fa-solid fa-microchip"></i> <span class="hidden sm:inline">3. COMPILER</span>
+        </button>
+        <button onclick="switchPage('matrix')" id="nav-matrix" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold text-gray-300 hover:bg-white/10 transition flex items-center gap-2">
+          <i class="fa-solid fa-border-all"></i> <span class="hidden sm:inline">4. MATRIX GRID</span>
+        </button>
+      </nav>
+
+      <!-- Dynamic Mood Switcher Selector Pill -->
+      <div class="flex items-center gap-1.5 bg-black/60 p-1.5 rounded-full border border-white/10">
+        <span class="text-[10px] font-mono uppercase px-2 text-gray-400 hidden lg:inline">Atmosphere Mood:</span>
+        <button onclick="setMood('pink')" class="w-6 h-6 rounded-full bg-pink-500 hover:scale-125 transition shadow-lg" title="PINK — Chaos"></button>
+        <button onclick="setMood('green')" class="w-6 h-6 rounded-full bg-emerald-500 hover:scale-125 transition shadow-lg" title="GREEN — Party"></button>
+        <button onclick="setMood('purple')" class="w-6 h-6 rounded-full bg-purple-500 hover:scale-125 transition shadow-lg" title="PURPLE — Mystery"></button>
+        <button onclick="setMood('black')" class="w-6 h-6 rounded-full bg-rose-600 hover:scale-125 transition shadow-lg" title="BLACK — Filth"></button>
+        <button onclick="setMood('custom')" class="w-6 h-6 rounded-full bg-cyan-500 hover:scale-125 transition shadow-lg" title="CUSTOM — Mix It Up"></button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto w-full p-4 md:p-6 flex-grow">
+
+    <!-- ========================================== -->
+    <!-- PAGE 1 — DASHBOARD                         -->
+    <!-- ========================================== -->
+    <section id="page-dashboard" class="space-y-6">
+      
+      <!-- Hero Banner -->
+      <div class="glass-panel p-6 md:p-8 rounded-3xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black pointer-events-none select-none">
+          CARDS
+        </div>
+        <div class="max-w-3xl space-y-4">
+          <span class="px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider uppercase bg-white/10 border border-white/20">
+            SYSTEM CONTROL CENTRE
+          </span>
+          <h2 class="text-3xl md:text-5xl font-black tracking-tight">
+            CARD GAME GENERATOR STUDIO
+          </h2>
+          <p class="text-gray-300 text-sm md:text-base leading-relaxed">
+            Architect custom party games, drinking decks, pub card sets, and mystery prompts. Features decoupled data-to-design rendering, Swear Metre language control, and Vistaprint PDF export.
+          </p>
+          <div class="flex flex-wrap gap-3 pt-2">
+            <button onclick="switchPage('intake')" class="btn-tactile bg-rose-600 hover:bg-rose-500 text-white font-bold px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2">
+              <i class="fa-solid fa-plus-circle"></i> CREATE NEW GAME
+            </button>
+            <button onclick="loadSampleGame('london')" class="btn-tactile bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-3 rounded-2xl text-sm font-semibold flex items-center gap-2">
+              <i class="fa-solid fa-bolt"></i> LOAD SAMPLE: LONDON CHAOS
+            </button>
+            <button onclick="loadSampleGame('mystery')" class="btn-tactile bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 px-5 py-3 rounded-2xl text-sm font-semibold flex items-center gap-2">
+              <i class="fa-solid fa-mask"></i> LOAD SAMPLE: PUB MYSTERY
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Metrics Panel -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="glass-panel p-4 rounded-2xl border border-white/10">
+          <div class="text-[10px] text-gray-400 font-mono uppercase">Games Created</div>
+          <div class="text-2xl md:text-3xl font-black mt-1 text-rose-400" id="stat-created">8</div>
+          <div class="text-[10px] text-gray-500 mt-1">Saved locally</div>
+        </div>
+        <div class="glass-panel p-4 rounded-2xl border border-white/10">
+          <div class="text-[10px] text-gray-400 font-mono uppercase">Draft Games</div>
+          <div class="text-2xl md:text-3xl font-black mt-1 text-emerald-400" id="stat-drafts">2</div>
+          <div class="text-[10px] text-gray-500 mt-1">Ready for compiler</div>
+        </div>
+        <div class="glass-panel p-4 rounded-2xl border border-white/10">
+          <div class="text-[10px] text-gray-400 font-mono uppercase">Saved Examples</div>
+          <div class="text-2xl md:text-3xl font-black mt-1 text-purple-400" id="stat-examples">5</div>
+          <div class="text-[10px] text-gray-500 mt-1">Preset templates</div>
+        </div>
+        <div class="glass-panel p-4 rounded-2xl border border-white/10">
+          <div class="text-[10px] text-gray-400 font-mono uppercase">Total Cards</div>
+          <div class="text-2xl md:text-3xl font-black mt-1 text-cyan-400" id="stat-cards">250</div>
+          <div class="text-[10px] text-gray-500 mt-1">In active deck</div>
+        </div>
+        <div class="glass-panel p-4 rounded-2xl border border-white/10 col-span-2 md:col-span-1">
+          <div class="text-[10px] text-gray-400 font-mono uppercase">Active Template</div>
+          <div class="text-lg md:text-xl font-bold mt-1 text-yellow-400 capitalize truncate" id="stat-template">
+            Standard
+          </div>
+          <div class="text-[10px] text-gray-500 mt-1">Matrix renderer</div>
+        </div>
+      </div>
+
+      <!-- Quick Start Controls & Mood Engine Preview -->
+      <div class="grid md:grid-cols-2 gap-6">
+        
+        <!-- Quick-Start Panel -->
+        <div class="glass-panel p-6 rounded-3xl space-y-5">
+          <h3 class="text-xl font-bold flex items-center gap-2">
+            <i class="fa-solid fa-rocket text-rose-400"></i> Quick-Start Configuration
+          </h3>
+          
+          <div class="space-y-2">
+            <label class="text-xs font-mono text-gray-400 uppercase block">1. Target Age Mode</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="setQuickAge('12+')" id="dash-btn-12" class="p-3 rounded-xl border border-white/10 bg-white/5 font-bold hover:bg-white/10 transition text-center text-xs">
+                🟢 12+ FAMILY & TEEN
+              </button>
+              <button onclick="setQuickAge('18+')" id="dash-btn-18" class="p-3 rounded-xl border border-rose-500/50 bg-rose-500/20 font-bold hover:bg-rose-500/30 transition text-center text-xs text-rose-300">
+                🔴 18+ ADULT & FILTH
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-mono text-gray-400 uppercase block">2. Select Visual Mood Preset</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button onclick="setMood('pink')" class="p-2.5 rounded-xl border border-pink-500/40 bg-pink-500/10 hover:bg-pink-500/20 text-xs font-bold text-pink-300 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-pink-500"></span> PINK — CHAOS
+              </button>
+              <button onclick="setMood('green')" class="p-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold text-emerald-300 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500"></span> GREEN — PARTY
+              </button>
+              <button onclick="setMood('purple')" class="p-2.5 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-xs font-bold text-purple-300 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-purple-500"></span> PURPLE — MYSTERY
+              </button>
+              <button onclick="setMood('black')" class="p-2.5 rounded-xl border border-rose-600/40 bg-rose-600/10 hover:bg-rose-600/20 text-xs font-bold text-rose-300 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-600"></span> BLACK — FILTH
+              </button>
+              <button onclick="setMood('custom')" class="p-2.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 text-xs font-bold text-cyan-300 flex items-center gap-2 col-span-2 sm:col-span-1">
+                <span class="w-3 h-3 rounded-full bg-cyan-500"></span> CUSTOM — MIX IT
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button onclick="switchPage('intake')" class="w-full btn-tactile bg-gradient-to-r from-rose-600 to-purple-600 py-3.5 rounded-xl font-bold tracking-wide shadow-xl text-sm">
+              PROCEED TO INTAKE FORM →
+            </button>
+          </div>
+        </div>
+
+        <!-- Visual Mood Engine Overview Panel -->
+        <div class="glass-panel p-6 rounded-3xl space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="text-xl font-bold flex items-center gap-2">
+              <i class="fa-solid fa-palette text-cyan-400"></i> Atmosphere Theme Engine
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">
+              The mood system isn't just a color theme. It alters backgrounds, button physics, card borders, fonts, layout density, and slang tone.
+            </p>
+          </div>
+
+          <!-- Live Card Mood Preview Component -->
+          <div class="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <span class="text-gray-400">ATMOSPHERE PREVIEW</span>
+              <span id="active-mood-badge" class="text-rose-400 font-bold uppercase">BLACK — FILTH</span>
+            </div>
+            
+            <div id="dashboard-sample-card" class="p-4 card-render template-standard text-center space-y-2 h-36 justify-center">
+              <div class="text-[10px] font-mono tracking-widest text-rose-400 uppercase font-bold">CARD #001 • DARE</div>
+              <div class="font-bold text-sm">"Call a mate and speak exclusively in a terrible Cockney accent for 30 seconds."</div>
+              <div class="text-[10px] opacity-75 font-mono">DIFFICULTY: 🔥🔥</div>
+            </div>
+          </div>
+
+          <div class="text-xs text-gray-500 italic">
+            "Changing visual mood re-renders the UI without modifying game prompt data."
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PAGE 2 — INTAKE FORM                       -->
+    <!-- ========================================== -->
+    <section id="page-intake" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-3xl flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-black flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-rose-400"></i> GAME INTAKE PROTOCOL
+          </h2>
+          <p class="text-xs text-gray-400">Provide natural instructions and choices to shape the card compiler engine.</p>
+        </div>
+        <span class="text-xs font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1.5 rounded-full">
+          STEP-BY-STEP BUILDER
+        </span>
+      </div>
+
+      <form id="intake-form" onsubmit="event.preventDefault(); compileIntakeForm();" class="space-y-6">
+        
+        <!-- STEP 1 — GAME BASICS -->
+        <div class="glass-panel p-6 rounded-3xl space-y-4">
+          <h3 class="text-lg font-bold text-rose-400 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 text-xs flex items-center justify-center">1</span>
+            GAME BASICS
+          </h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="space-y-1 md:col-span-1">
+              <label class="text-xs font-mono text-gray-400 uppercase">Game Name</label>
+              <input type="text" id="intake-name" value="London Chaos Pub Crawl" class="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500" required>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-mono text-gray-400 uppercase">Age Rating</label>
+              <select id="intake-age" onchange="handleAgeRatingChange(this.value)" class="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500">
+                <option value="12+">12+ (Teen / Family Friendly)</option>
+                <option value="18+" selected>18+ (Explicit Adult / Underground)</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-mono text-gray-400 uppercase">Number of Cards (1–100)</label>
+              <input type="number" id="intake-card-count" min="1" max="100" value="25" class="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2 — THEME -->
+        <div class="glass-panel p-6 rounded-3xl space-y-4">
+          <h3 class="text-lg font-bold text-rose-400 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 text-xs flex items-center justify-center">2</span>
+            THEME SELECTION
+          </h3>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="selectPresetTheme('Drinking / Pub Crawl')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-rose-500/20 border border-white/10">Drinking / Pub Crawl</button>
+            <button type="button" onclick="selectPresetTheme('House Party Chaos')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-rose-500/20 border border-white/10">House Party Chaos</button>
+            <button type="button" onclick="selectPresetTheme('Dating & Confessions')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-rose-500/20 border border-white/10">Dating & Confessions</button>
+            <button type="button" onclick="selectPresetTheme('British Comedy & Banter')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-rose-500/20 border border-white/10">British Banter</button>
+            <button type="button" onclick="selectPresetTheme('Mystery & Secret Roles')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-rose-500/20 border border-white/10">Mystery & Secret Roles</button>
+          </div>
+          <div>
+            <input type="text" id="intake-custom-theme" value="London Underground Pub Chaos" placeholder="Or enter custom theme..." class="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <!-- STEP 3 — GAME IDEAS -->
+        <div class="glass-panel p-6 rounded-3xl space-y-3">
+          <h3 class="text-lg font-bold text-rose-400 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 text-xs flex items-center justify-center">3</span>
+            GAME VISION & NATURAL PROMPT
+          </h3>
+          <textarea id="intake-idea" rows="3" class="w-full bg-black/50 border border-white/20 rounded-xl p-4 text-sm focus:outline-none focus:border-rose-500" placeholder="Describe the game you are imagining naturally...">Something like a chaotic London pub game where people have to confess embarrassing things, attempt ridiculous dares, and vote on who in the group is most likely to do something wild.</textarea>
+        </div>
+
+        <!-- STEP 4 & 5 — PROPS AND MECHANICS -->
+        <div class="grid md:grid-cols-2 gap-6">
+          
+          <!-- PROPS -->
+          <div class="glass-panel p-6 rounded-3xl space-y-3">
+            <h3 class="text-lg font-bold text-rose-400 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 text-xs flex items-center justify-center">4</span>
+              REQUIRED PROPS
+            </h3>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="prop" value="Cards" checked class="accent-rose-500"> Cards Only
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="prop" value="Coins" class="accent-rose-500"> Coins
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="prop" value="Dice" class="accent-rose-500"> Dice
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="prop" value="Phones" checked class="accent-rose-500"> Phones
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="prop" value="Cups/Pints" checked class="accent-rose-500"> Cups / Pints
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="prop" value="Paper & Pen" class="accent-rose-500"> Paper & Pen
+              </label>
+            </div>
+          </div>
+
+          <!-- MECHANICS -->
+          <div class="glass-panel p-6 rounded-3xl space-y-3">
+            <h3 class="text-lg font-bold text-rose-400 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 text-xs flex items-center justify-center">5</span>
+              GAME MECHANICS
+            </h3>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="mechanic" value="Truth" checked class="accent-rose-500"> Truth
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="mechanic" value="Dare" checked class="accent-rose-500"> Dare
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="mechanic" value="Voting" checked class="accent-rose-500"> Voting
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="mechanic" value="Drinking" checked class="accent-rose-500"> Drinking
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="mechanic" value="Bluffing" class="accent-rose-500"> Bluffing
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer hover:bg-white/5">
+                <input type="checkbox" name="mechanic" value="Acting" class="accent-rose-500"> Acting
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- STEP 6 & 7 — ROUNDS & SWEAR METRE -->
+        <div class="grid md:grid-cols-2 gap-6">
+          
+          <!-- ROUNDS -->
+          <div class="glass-panel p-6 rounded-3xl space-y-3">
+            <h3 class="text-lg font-bold text-rose-400 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 text-xs flex items-center justify-center">6</span>
+              ROUND STRUCTURE
+            </h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-mono text-gray-400">Rounds Count: <span id="round-val" class="text-rose-400 font-bold">5</span></label>
+                <input type="range" id="intake-rounds" min="1" max="20" value="5" oninput="document.getElementById('round-val').innerText=this.value" class="accent-rose-500">
+              </div>
+              <select id="intake-round-structure" class="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-xs">
+                <option value="sequential">Sequential Progression (Round 1 → 2 → Final)</option>
+                <option value="random">Randomized Draw</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- SWEAR METRE / SLANG LEVEL -->
+          <div class="glass-panel p-6 rounded-3xl space-y-3 border border-rose-500/30">
+            <h3 class="text-lg font-bold text-rose-400 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 text-xs flex items-center justify-center">7</span>
+              SWEAR METRE (LANGUAGE ENGINE)
+            </h3>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 cursor-pointer">
+                <input type="radio" id="swear-mild" name="swear_level" value="MILD" class="accent-emerald-500">
+                <span>🟢 MILD — Everyday slang & light banter</span>
+              </label>
+              <label class="flex items-center gap-2 text-xs p-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 cursor-pointer">
+                <input type="radio" id="swear-naughty" name="swear_level" value="NAUGHTY" checked class="accent-yellow-500">
+                <span>🟡 NAUGHTY — Stronger British slang & cheeky profanity</span>
+              </label>
+              <label class="flex items-center gap-2 text-xs p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 cursor-pointer" id="swear-filthy-wrapper">
+                <input type="radio" id="swear-filthy" name="swear_level" value="FILTHY" class="accent-rose-500">
+                <span>🔴 FILTHY — Explicit 18+ adult language (Strict Wall)</span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- STEP 8 — FINAL INTAKE ACTION -->
+        <div class="glass-panel p-6 rounded-3xl space-y-4 text-center">
+          <h3 class="text-lg font-bold">READY TO COMPILE DECK SPECIFICATION</h3>
+          <p class="text-xs text-gray-400 max-w-xl mx-auto">
+            Submitting this intake form compiles parameters into a structured JSON payload ready for the Claude AI Consultation engine.
+          </p>
+          <button type="submit" class="btn-tactile bg-rose-600 hover:bg-rose-500 text-white font-black text-base px-8 py-4 rounded-2xl shadow-xl uppercase tracking-wider inline-flex items-center gap-3">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> GENERATE GAME SPECIFICATION
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PAGE 3 — COMPILER                          -->
+    <!-- ========================================== -->
+    <section id="page-compiler" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-3xl flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-black flex items-center gap-2">
+            <i class="fa-solid fa-microchip text-rose-400"></i> COMPILER & AI CONSULTATION
+          </h2>
+          <p class="text-xs text-gray-400">Structured prompt generator, live simulator, and raw JSON paste-back area.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="runLocalAISimulator()" class="btn-tactile px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold flex items-center gap-2">
+            <i class="fa-solid fa-bolt"></i> RUN LOCAL AI SIMULATION
+          </button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        
+        <!-- LEFT SIDE: INPUT PARAMETERS SUMMARY -->
+        <div class="glass-panel p-6 rounded-3xl space-y-4">
+          <h3 class="text-lg font-bold border-b border-white/10 pb-2 text-rose-400">
+            COMPILED INTAKE SPECIFICATION
+          </h3>
+          
+          <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+            <div class="bg-black/40 p-2.5 rounded-xl border border-white/5">
+              <span class="text-gray-500 block">GAME TITLE</span>
+              <span id="spec-title" class="text-white font-bold">London Chaos</span>
+            </div>
+            <div class="bg-black/40 p-2.5 rounded-xl border border-white/5">
+              <span class="text-gray-500 block">AGE RATING</span>
+              <span id="spec-age" class="text-rose-400 font-bold">18+</span>
+            </div>
+            <div class="bg-black/40 p-2.5 rounded-xl border border-white/5">
+              <span class="text-gray-500 block">ACTIVE MOOD</span>
+              <span id="spec-mood" class="text-pink-400 font-bold uppercase">BLACK</span>
+            </div>
+            <div class="bg-black/40 p-2.5 rounded-xl border border-white/5">
+              <span class="text-gray-500 block">LANGUAGE METRE</span>
+              <span id="spec-lang" class="text-yellow-400 font-bold">NAUGHTY</span>
+            </div>
+            <div class="bg-black/40 p-2.5 rounded-xl border border-white/5">
+              <span class="text-gray-500 block">CARDS TARGET</span>
+              <span id="spec-cards" class="text-cyan-400 font-bold">25</span>
+            </div>
+            <div class="bg-black/40 p-2.5 rounded-xl border border-white/5">
+              <span class="text-gray-500 block">ROUNDS</span>
+              <span id="spec-rounds" class="text-emerald-400 font-bold">5</span>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-xs text-gray-400 font-mono block mb-1">COMPILED PROMPT FOR CLAUDE</span>
+            <textarea id="claude-prompt-preview" readonly rows="7" class="w-full bg-black/60 border border-white/10 rounded-xl p-3 font-mono text-[11px] text-gray-300 focus:outline-none"></textarea>
+          </div>
+
+          <button onclick="copyClaudePrompt()" class="w-full btn-tactile bg-white/10 hover:bg-white/20 border border-white/20 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-copy"></i> COPY PROMPT TO CLIPBOARD
+          </button>
+        </div>
+
+        <!-- RIGHT SIDE: CLAUDE CONSULTATION PASTE-BACK -->
+        <div class="glass-panel p-6 rounded-3xl space-y-4">
+          <div class="flex justify-between items-center border-b border-white/10 pb-2">
+            <h3 class="text-lg font-bold text-rose-400">
+              CLAUDE JSON OUTPUT AREA
+            </h3>
+            <span class="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">
+              READY FOR PARSE
+            </span>
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-400 font-mono block mb-1">Paste Claude JSON output below or click Simulation above:</label>
+            <textarea id="claude-json-output" rows="10" class="w-full bg-black/80 border border-rose-500/30 rounded-xl p-3 font-mono text-xs text-emerald-400 focus:outline-none focus:border-rose-500" placeholder="Paste generated JSON here..."></textarea>
+          </div>
+
+          <button onclick="parseClaudeJSON()" class="w-full btn-tactile bg-rose-600 hover:bg-rose-500 font-bold py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+            <i class="fa-solid fa-file-import"></i> IMPORT / PARSE GAME DATA
+          </button>
+        </div>
+
+      </div>
+
+      <!-- QUICK SAMPLE PREVIEW AREA -->
+      <div class="glass-panel p-6 rounded-3xl space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+          <h3 class="text-lg font-bold flex items-center gap-2">
+            <i class="fa-solid fa-eye text-cyan-400"></i> QUICK DECK PREVIEW (SAMPLE CARDS)
+          </h3>
+          <div class="flex gap-2">
+            <button onclick="rerollSampleCards()" class="btn-tactile px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold flex items-center gap-2">
+              <i class="fa-solid fa-dice"></i> 🎲 REROLL SAMPLES
+            </button>
+            <button onclick="sendToMatrix()" class="btn-tactile px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i> CONFIRM & SEND TO MATRIX GRID →
+            </button>
+          </div>
+        </div>
+
+        <div id="sample-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+          <!-- 5 Sample Cards render here -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PAGE 4 — MATRIX GRID & PRINT CENTRE        -->
+    <!-- ========================================== -->
+    <section id="page-matrix" class="hidden space-y-6">
+      
+      <!-- Top Control Bar -->
+      <div class="glass-panel p-6 rounded-3xl space-y-4 no-print">
+        <div class="flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-black flex items-center gap-2">
+              <i class="fa-solid fa-border-all text-rose-400"></i> MATRIX PRODUCTION GRID
+            </h2>
+            <p class="text-xs text-gray-400">10-card paginated view. Swap design templates dynamically without altering card text.</p>
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            <button onclick="saveGameLocally()" class="btn-tactile px-3 py-2 bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 rounded-xl text-xs font-bold flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> SAVE GAME
+            </button>
+            <button onclick="triggerPrintPreview()" class="btn-tactile px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold flex items-center gap-2">
+              <i class="fa-solid fa-print"></i> PRINT CENTRE / EXPORT PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Template Selector Bar -->
+        <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-white/10">
+          <div>
+            <label class="text-[10px] font-mono text-gray-400 uppercase block mb-1">Card Template</label>
+            <select id="matrix-template-select" onchange="changeTemplate(this.value)" class="w-full bg-black/60 border border-white/20 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-rose-500">
+              <option value="template-standard">Standard Playing Card</option>
+              <option value="template-modern">Modern Trading Deck</option>
+              <option value="template-pub">British Pub Style</option>
+              <option value="template-neon">Neon Nightclub</option>
+              <option value="template-minimal">Minimal B&W</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-mono text-gray-400 uppercase block mb-1">Atmosphere Mood Override</label>
+            <select id="matrix-mood-select" onchange="setMood(this.value)" class="w-full bg-black/60 border border-white/20 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-rose-500">
+              <option value="pink">Pink (Chaos)</option>
+              <option value="green">Green (Party)</option>
+              <option value="purple">Purple (Mystery)</option>
+              <option value="black">Black (Filth)</option>
+              <option value="custom">Custom (Cyber)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-mono text-gray-400 uppercase block mb-1">Print Layout Format</label>
+            <select id="print-format-select" class="w-full bg-black/60 border border-white/20 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-rose-500">
+              <option value="business_card">Vistaprint Business Card (3.5" x 2.0")</option>
+              <option value="poker">Standard Poker Size (2.5" x 3.5")</option>
+            </select>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="flex items-end gap-2">
+            <button onclick="prevPage10()" class="btn-tactile flex-1 bg-white/10 hover:bg-white/20 py-1.5 rounded-lg text-xs font-bold">
+              ‹ PREV 10
+            </button>
+            <span id="matrix-page-indicator" class="text-xs font-mono text-center self-center px-2">
+              01–10 / 25
+            </span>
+            <button onclick="nextPage10()" class="btn-tactile flex-1 bg-white/10 hover:bg-white/20 py-1.5 rounded-lg text-xs font-bold">
+              NEXT 10 ›
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATRIX 10-CARD GRID CONTAINER -->
+      <div id="matrix-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 min-h-[400px]">
+        <!-- 10 dynamic card components render here -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="glass-panel border-t mt-10 py-4 px-6 text-center text-xs text-gray-500 no-print">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div>© 2026 CARD GAME GENERATOR — DECK BUILDER STUDIO</div>
+      <div class="font-mono text-[10px] text-gray-400">STATUS: DECOUPLED RENDER ENGINE ACTIVE</div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       APPLICATION JAVASCRIPT ENGINE
+       ========================================================================== -->
+  <script>
+    /* GLOBAL STATE */
+    const state = {
+      activePage: 'dashboard',
+      activeMood: 'black',
+      activeTemplate: 'template-standard',
+      ageRating: '18+',
+      currentPageGroup: 0, // 0 = cards 01-10
+      intakeData: {
+        name: "London Chaos Pub Crawl",
+        age: "18+",
+        cardCount: 25,
+        theme: "London Underground Pub Chaos",
+        idea: "A chaotic London pub game where people have to confess embarrassing things.",
+        props: ["Cards", "Phones", "Cups/Pints"],
+        mechanics: ["Truth", "Dare", "Voting", "Drinking"],
+        rounds: 5,
+        roundStructure: "sequential",
+        swearLevel: "NAUGHTY"
+      },
+      gameObject: null
+    };
+
+    /* PROMPT DICTIONARIES FOR SWEAR METRE GENERATION */
+    const promptDatabase = {
+      MILD: [
+        "High-five the person to your left and give them a genuine compliment.",
+        "Tell the group your most awkward nickname from secondary school.",
+        "Attempt to do your best impression of a famous film character.",
+        "Name 3 London tube stations in under 5 seconds or take a penalty.",
+        "Point to the person most likely to lose their keys on a night out.",
+        "Speak in an overly polite accent for the next 2 turns.",
+        "Share your worst fashion decision from five years ago.",
+        "Show the group the 3rd photo in your phone camera roll."
+      ],
+      NAUGHTY: [
+        "Confess the most embarrassing text message you've sent this month.",
+        "Do your worst Cockney accent while trying to order a drink.",
+        "Take 2 sips if you've ever ghosted someone after a pub date.",
+        "Point to the person who would survive the least in a zombie apocalypse.",
+        "Call out the biggest cheapskate in the group; they can defend themselves.",
+        "Demonstrate your worst tube train balance wobble dance.",
+        "Tell an outrageous lie about your past; group votes if it's true or false.",
+        "Swap seats with someone and act like them for 1 full minute."
+      ],
+      FILTHY: [
+        "Reveal your worst night-out hangover story in horrific detail.",
+        "Show the group your current screen time total; highest takes 3 sips.",
+        "Confess the absolute worst excuse you've used to get out of a date.",
+        "Group vote: Who is most likely to get kicked out of a London nightclub?",
+        "Read out the last search query in your private browsing tab.",
+        "Re-enact your last terrible pickup line with the person to your right.",
+        "Confess your most chaotic drunk purchase ever made online.",
+        "Take 3 sips if you've ever snuck into an exclusive VIP section."
+      ]
+    };
+
+    /* INITIALIZATION */
+    window.onload = function() {
+      loadSampleGame('london');
+      updateDashboardMetrics();
+    };
+
+    /* PAGE SWITCHER */
+    function switchPage(pageId) {
+      state.activePage = pageId;
+
+      ['dashboard', 'intake', 'compiler', 'matrix'].forEach(p => {
+        const pageElem = document.getElementById(`page-${p}`);
+        const navBtn = document.getElementById(`nav-${p}`);
+        if (pageElem) pageElem.classList.add('hidden');
+        if (navBtn) {
+          navBtn.classList.remove('bg-rose-600/20', 'text-rose-300', 'border', 'border-rose-500/40');
+          navBtn.classList.add('text-gray-300');
+        }
+      });
+
+      const activePageElem = document.getElementById(`page-${pageId}`);
+      const activeNavBtn = document.getElementById(`nav-${pageId}`);
+      
+      if (activePageElem) activePageElem.classList.remove('hidden');
+      if (activeNavBtn) {
+        activeNavBtn.classList.add('bg-rose-600/20', 'text-rose-300', 'border', 'border-rose-500/40');
+      }
+
+      if (pageId === 'compiler') {
+        updateCompilerPage();
+      } else if (pageId === 'matrix') {
+        renderMatrixGrid();
+      }
+    }
+
+    /* MOOD ENGINE SWITCHER */
+    function setMood(mood) {
+      state.activeMood = mood;
+      document.documentElement.setAttribute('data-mood', mood);
+
+      const moodBadge = document.getElementById('active-mood-badge');
+      if (moodBadge) moodBadge.innerText = mood.toUpperCase() + ' MOOD ACTIVE';
+
+      const matrixSelect = document.getElementById('matrix-mood-select');
+      if (matrixSelect) matrixSelect.value = mood;
+
+      if (state.activePage === 'matrix') {
+        renderMatrixGrid();
+      }
+    }
+
+    function setQuickAge(age) {
+      state.ageRating = age;
+      state.intakeData.age = age;
+      
+      const intakeAgeSelect = document.getElementById('intake-age');
+      if (intakeAgeSelect) intakeAgeSelect.value = age;
+
+      handleAgeRatingChange(age);
+
+      const btn12 = document.getElementById('dash-btn-12');
+      const btn18 = document.getElementById('dash-btn-18');
+
+      if (age === '12+') {
+        if(btn12) btn12.classList.add('border-emerald-500', 'bg-emerald-500/20');
+        if(btn18) btn18.classList.remove('border-rose-500', 'bg-rose-500/20');
+      } else {
+        if(btn18) btn18.classList.add('border-rose-500', 'bg-rose-500/20');
+        if(btn12) btn12.classList.remove('border-emerald-500', 'bg-emerald-500/20');
+      }
+    }
+
+    /* AGE GUARDRAIL FOR SWEAR METRE */
+    function handleAgeRatingChange(age) {
+      const filthyWrapper = document.getElementById('swear-filthy-wrapper');
+      const filthyRadio = document.getElementById('swear-filthy');
+      const naughtyRadio = document.getElementById('swear-naughty');
+
+      if (age === '12+') {
+        if (filthyWrapper) filthyWrapper.classList.add('opacity-40', 'pointer-events-none');
+        if (filthyRadio && filthyRadio.checked) {
+          if (naughtyRadio) naughtyRadio.checked = true;
+          state.intakeData.swearLevel = 'NAUGHTY';
+        }
+      } else {
+        if (filthyWrapper) filthyWrapper.classList.remove('opacity-40', 'pointer-events-none');
+      }
+    }
+
+    function selectPresetTheme(theme) {
+      document.getElementById('intake-custom-theme').value = theme;
+    }
+
+    /* INTAKE COMPILER */
+    function compileIntakeForm() {
+      state.intakeData.name = document.getElementById('intake-name').value;
+      state.intakeData.age = document.getElementById('intake-age').value;
+      state.intakeData.cardCount = parseInt(document.getElementById('intake-card-count').value) || 25;
+      state.intakeData.theme = document.getElementById('intake-custom-theme').value;
+      state.intakeData.idea = document.getElementById('intake-idea').value;
+      state.intakeData.rounds = parseInt(document.getElementById('intake-rounds').value) || 5;
+      state.intakeData.roundStructure = document.getElementById('intake-round-structure').value;
+
+      const props = [];
+      document.querySelectorAll('input[name="prop"]:checked').forEach(cb => props.push(cb.value));
+      state.intakeData.props = props;
+
+      const mechanics = [];
+      document.querySelectorAll('input[name="mechanic"]:checked').forEach(cb => mechanics.push(cb.value));
+      state.intakeData.mechanics = mechanics;
+
+      const swearElem = document.querySelector('input[name="swear_level"]:checked');
+      if (swearElem) state.intakeData.swearLevel = swearElem.value;
+
+      runLocalAISimulator();
+      switchPage('compiler');
+    }
+
+    /* COMPILER PAGE UPDATES */
+    function updateCompilerPage() {
+      document.getElementById('spec-title').innerText = state.intakeData.name;
+      document.getElementById('spec-age').innerText = state.intakeData.age;
+      document.getElementById('spec-mood').innerText = state.activeMood.toUpperCase();
+      document.getElementById('spec-lang').innerText = state.intakeData.swearLevel;
+      document.getElementById('spec-cards').innerText = state.intakeData.cardCount;
+      document.getElementById('spec-rounds').innerText = state.intakeData.rounds;
+
+      const prompt = `You are a Master Card Game Designer.
+Generate a structured card deck:
+- TITLE: "${state.intakeData.name}"
+- AGE: ${state.intakeData.age}
+- MOOD: ${state.activeMood}
+- LANGUAGE LEVEL: ${state.intakeData.swearLevel}
+- CARDS COUNT: ${state.intakeData.cardCount}
+- MECHANICS: ${state.intakeData.mechanics.join(', ')}
+- PROPS: ${state.intakeData.props.join(', ')}
+- CONCEPT: "${state.intakeData.idea}"
+
+Return ONLY valid JSON:
+{
+  "game_metadata": {
+    "title": "${state.intakeData.name}",
+    "age_rating": "${state.intakeData.age}",
+    "mood": "${state.activeMood}",
+    "language_level": "${state.intakeData.swearLevel}",
+    "total_cards": ${state.intakeData.cardCount}
+  },
+  "cards": [
+    {
+      "id": "CARD-001",
+      "round": 1,
+      "type": "Dare",
+      "text": "Card prompt...",
+      "difficulty": 2,
+      "props_needed": ["Phone"]
+    }
+  ]
+}`;
+
+      document.getElementById('claude-prompt-preview').value = prompt;
+
+      if (state.gameObject) {
+        document.getElementById('claude-json-output').value = JSON.stringify(state.gameObject, null, 2);
+        renderSampleCards();
+      }
+    }
+
+    /* MOCK LOCAL AI GENERATOR */
+    function runLocalAISimulator() {
+      const cards = [];
+      const types = state.intakeData.mechanics.length > 0 ? state.intakeData.mechanics : ["Dare", "Truth", "Voting"];
+      const promptBank = promptDatabase[state.intakeData.swearLevel] || promptDatabase.NAUGHTY;
+
+      for (let i = 1; i <= state.intakeData.cardCount; i++) {
+        const randomType = types[(i - 1) % types.length];
+        const baseText = promptBank[(i - 1) % promptBank.length];
+        const roundNum = ((i - 1) % state.intakeData.rounds) + 1;
+
+        cards.push({
+          id: `CARD-${String(i).padStart(3, '0')}`,
+          round: roundNum,
+          type: randomType,
+          text: baseText,
+          difficulty: Math.floor(Math.random() * 3) + 1,
+          props_needed: state.intakeData.props
+        });
+      }
+
+      state.gameObject = {
+        game_metadata: {
+          title: state.intakeData.name,
+          age_rating: state.intakeData.age,
+          mood: state.activeMood,
+          language_level: state.intakeData.swearLevel,
+          total_cards: state.intakeData.cardCount
+        },
+        cards: cards
+      };
+
+      document.getElementById('claude-json-output').value = JSON.stringify(state.gameObject, null, 2);
+      renderSampleCards();
+      updateDashboardMetrics();
+    }
+
+    function copyClaudePrompt() {
+      const textarea = document.getElementById('claude-prompt-preview');
+      textarea.select();
+      document.execCommand('copy');
+      alert('Prompt copied to clipboard!');
+    }
+
+    function parseClaudeJSON() {
+      try {
+        const raw = document.getElementById('claude-json-output').value;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.cards && Array.isArray(parsed.cards)) {
+          state.gameObject = parsed;
+          renderSampleCards();
+          alert(`Successfully imported "${parsed.game_metadata.title}" with ${parsed.cards.length} cards!`);
+        } else {
+          alert('Invalid JSON structure. "cards" array is missing.');
+        }
+      } catch (err) {
+        alert('JSON Parsing Error: ' + err.message);
+      }
+    }
+
+    function renderSampleCards() {
+      const container = document.getElementById('sample-cards-container');
+      if (!container || !state.gameObject || !state.gameObject.cards) return;
+
+      container.innerHTML = '';
+      const samples = state.gameObject.cards.slice(0, 5);
+
+      samples.forEach(card => {
+        container.appendChild(createCardHTMLElement(card));
+      });
+    }
+
+    function rerollSampleCards() {
+      if (!state.gameObject || !state.gameObject.cards) return;
+      state.gameObject.cards.sort(() => Math.random() - 0.5);
+      renderSampleCards();
+    }
+
+    function sendToMatrix() {
+      switchPage('matrix');
+    }
+
+    /* MATRIX GRID & RENDER ENGINE */
+    function renderMatrixGrid() {
+      const container = document.getElementById('matrix-grid-container');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      if (!state.gameObject || !state.gameObject.cards || state.gameObject.cards.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-20 text-gray-500 font-mono">No game cards generated yet. Complete intake form first.</div>`;
+        return;
+      }
+
+      const totalCards = state.gameObject.cards.length;
+      const startIndex = state.currentPageGroup * 10;
+      const endIndex = Math.min(startIndex + 10, totalCards);
+
+      const pageCards = state.gameObject.cards.slice(startIndex, endIndex);
+
+      pageCards.forEach(card => {
+        const cardElem = createCardHTMLElement(card);
+        cardElem.classList.add('animate-shuffle');
+        container.appendChild(cardElem);
+      });
+
+      const pageIndicator = document.getElementById('matrix-page-indicator');
+      if (pageIndicator) {
+        pageIndicator.innerText = `${String(startIndex + 1).padStart(2, '0')}–${String(endIndex).padStart(2, '0')} / ${totalCards}`;
+      }
+    }
+
+    function prevPage10() {
+      if (state.currentPageGroup > 0) {
+        state.currentPageGroup--;
+        renderMatrixGrid();
+      }
+    }
+
+    function nextPage10() {
+      if (!state.gameObject) return;
+      if ((state.currentPageGroup + 1) * 10 < state.gameObject.cards.length) {
+        state.currentPageGroup++;
+        renderMatrixGrid();
+      }
+    }
+
+    function changeTemplate(templateClass) {
+      state.activeTemplate = templateClass;
+      document.getElementById('stat-template').innerText = templateClass.replace('template-', '');
+      renderMatrixGrid();
+    }
+
+    /* CARD COMPONENT CREATOR */
+    function createCardHTMLElement(card) {
+      const div = document.createElement('div');
+      div.className = `card-render p-4 rounded-xl h-64 shadow-xl border ${state.activeTemplate}`;
+      
+      const fireRating = '🔥'.repeat(card.difficulty || 1);
+
+      div.innerHTML = `
+        <div class="flex justify-between items-center text-[10px] font-mono opacity-80">
+          <span>${card.id}</span>
+          <span class="uppercase font-bold tracking-wider">ROUND ${card.round}</span>
+        </div>
+        
+        <div class="my-auto py-2">
+          <div class="text-[10px] font-mono uppercase tracking-widest text-rose-400 font-bold mb-1">${card.type}</div>
+          <div class="text-xs md:text-sm font-bold leading-snug">${card.text}</div>
+        </div>
+
+        <div class="flex justify-between items-center text-[10px] pt-2 border-t border-white/10 font-mono">
+          <span>DIFF: ${fireRating}</span>
+          <span class="opacity-60">${card.props_needed ? card.props_needed[0] || 'Cards' : 'Cards'}</span>
+        </div>
+      `;
+
+      return div;
+    }
+
+    /* HELPER ACTIONS */
+    function loadSampleGame(type) {
+      if (type === 'london') {
+        state.intakeData = {
+          name: "London Chaos Pub Crawl",
+          age: "18+",
+          cardCount: 25,
+          theme: "London Underground Pub Chaos",
+          idea: "A chaotic London pub game where people have to confess embarrassing things.",
+          props: ["Cards", "Phones", "Cups/Pints"],
+          mechanics: ["Truth", "Dare", "Voting", "Drinking"],
+          rounds: 5,
+          roundStructure: "sequential",
+          swearLevel: "NAUGHTY"
+        };
+        setMood('black');
+      } else {
+        state.intakeData = {
+          name: "Pub Mystery & Secret Roles",
+          age: "12+",
+          cardCount: 30,
+          theme: "Tavern Mystery",
+          idea: "A mystery game set in an ancient British pub with bluffing and secret roles.",
+          props: ["Cards", "Coins"],
+          mechanics: ["Bluffing", "Voting", "Acting"],
+          rounds: 3,
+          roundStructure: "sequential",
+          swearLevel: "MILD"
+        };
+        setMood('purple');
+      }
+      runLocalAISimulator();
+    }
+
+    function saveGameLocally() {
+      if (!state.gameObject) return;
+      alert(`Game "${state.gameObject.game_metadata.title}" saved to local storage!`);
+    }
+
+    function triggerPrintPreview() {
+      window.print();
+    }
+
+    function updateDashboardMetrics() {
+      if (state.gameObject) {
+        document.getElementById('stat-cards').innerText = state.gameObject.cards.length;
+      }
+    }
+  </script>
+</body>
+</html>
